@@ -22,8 +22,13 @@ RBC_USERNAME = os.getenv("RBC_USERNAME")
 RBC_PASSWORD = os.getenv("RBC_PASSWORD")
 rbc_login_url = 'https://secure.royalbank.com/statics/login-service-ui/index#/full/signin?LANGUAGE=ENGLISH'
 
-
+###################
+# Login functions #
+###################
 def accept_cookies():
+    """
+    Accepts all cookies on the RBC login page
+    """
     try:
         cookie_accept_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
@@ -37,6 +42,9 @@ def accept_cookies():
 
 
 def handle_text_message_verification():
+    """
+    Handle the text message verification step
+    """
     text_to_find = "Text me"
     phone_number = "2368****16"
     try:
@@ -72,6 +80,13 @@ def handle_text_message_verification():
 
 
 def login(url, username, password):
+    """This function logs into the RBC online banking account.
+
+    Args:
+        url (str): The URL of the login page.
+        username (str): The username/card to log in with.
+        password (str): The password to log in with.
+    """
     try:
 
         driver.get(url)
@@ -106,12 +121,17 @@ def login(url, username, password):
 
 
 
-def replace_special_chars(input_string):
-    return re.sub(r'[^a-zA-Z0-9]', '_', input_string)
-
 
 
 def get_account_name(item):
+    """The function returns the account name from the account item.
+
+    Args:
+        item (web  element): The account item.
+
+    Returns:
+        str: The account name.
+    """
     
     #item = item.find_elements(By.CSS_SELECTOR, "li.accounts-table__row")
     account_name_element = WebDriverWait(item, 15).until(
@@ -123,7 +143,7 @@ def get_account_name(item):
 
 
 def nav_to_trans_page(item):
-    """_summary_
+    """The function navigates to the transaction page for the given account.
 
     Args:
         item (_type_): _description_
@@ -176,7 +196,7 @@ def get_rbc_acounts(type = "banking"):
 
 def dict_to_csv(data, account_name):
     df = pd.DataFrame(data)
-    account_name = replace_special_chars(account_name)
+    account_name = utils.replace_special_chars(account_name)
     df.to_csv(f"data/{account_name}.csv", index=False)
     print(f"Data saved to {account_name}.csv")
 

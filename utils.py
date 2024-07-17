@@ -7,6 +7,8 @@ import time
 import re
 
 
+
+
 def replace_special_chars(input_string):
     return re.sub(r'[^a-zA-Z0-9]', '_', input_string)
 

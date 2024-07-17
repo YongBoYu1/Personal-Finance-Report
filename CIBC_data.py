@@ -29,6 +29,9 @@ cibc_login_url = 'https://www.cibconline.cibc.com/ebm-resources/online-banking/c
 
 
 def accept_cookies():
+    """
+    Accepts all cookies by clicking the 'Accept all cookies' button on the page.
+    """
     try:
         cookie_accept_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
@@ -43,6 +46,13 @@ def accept_cookies():
 
 
 def login(url, username, password):
+    """This function logs into the CIBC online banking account.
+
+    Args:
+        url (str): The URL of the login page.
+        username (str): The username/card to log in with.
+        password (str): The password to log in with.
+    """
 
     driver.get(url)
     accept_cookies()
@@ -116,6 +126,14 @@ def login(url, username, password):
 
 
 def extract_row_data(row):
+    """_summary_
+
+    Args:
+        row (webelement tr): The tr element containing the transaction data.
+
+    Returns:
+        list: The transaction data extracted from the row. [date, category, merchant_name, amount]
+    """
     date = row.find_element(By.TAG_NAME, 'td').text
     #print(f"Date: {date}")
     # Extract category from image title and merchant name from span
@@ -138,6 +156,11 @@ def extract_row_data(row):
 
 
 def extract_trans_history():
+    """This function extracts the transaction history from the current page.
+
+    Returns:
+        list: list of lists containing the transaction data. Each inner list contains the transaction data in the order [date, category, merchant_name, amount]
+    """
     # Start with the first page
     page_num = 1
     all_data = []
@@ -192,6 +215,11 @@ def extract_trans_history():
 
 
 def get_credit_accounts_data():
+    """This function extracts the transaction history for all credit accounts.
+
+    Returns:
+        Dict: The transaction history for each credit account in a dictionary. The key is the account name and the value is a pandas DataFrame containing the transaction data.
+    """
     dic = {}
     credit_container = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "div.account-groups-container.credit-accounts"))
@@ -201,7 +229,8 @@ def get_credit_accounts_data():
     card_container = WebDriverWait(credit_container, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "div.card-container"))
     )
-     
+     # todo: find all the card under the card container and loop them. 
+
      # Find the account name within the card container
     account = WebDriverWait(card_container, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "div.account-name"))
@@ -218,7 +247,12 @@ def get_credit_accounts_data():
 
 
 def load_trans_history_page(account, history_length = '3 months'):
+    """This function loads the transaction history page for a specific account.
 
+    Args:
+        account (web_element. ): The account html element.
+        history_length (str, optional): The history length. Defaults to '3 months'.
+    """
     # Find and click the specific link
     link = WebDriverWait(account, 10).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, 'a.account-name-header[data-test-id^="account-card-account-name-link-"]'))
@@ -247,7 +281,14 @@ def load_trans_history_page(account, history_length = '3 months'):
 
 
 def data_to_df(trans_data):
+    """convert the list of transaction data to a pandas DataFrame.
 
+    Args:
+        trans_data (list): list of lists containing the transaction data. Each inner list contains the transaction data in the order [date, category, merchant_name, amount]
+
+    Returns:
+        pd.DataFrame: The transaction data in a pandas DataFrame.
+    """
     # Create a pandas DataFrame from the data
     df_dict = {
         'Date': [data[0] for data in trans_data],
@@ -260,6 +301,15 @@ def data_to_df(trans_data):
 
 
 def set_csv_name(account, df):
+    """This function sets the name of the csv file to save the transaction data to.
+
+    Args:
+        account (str): The account name.
+        df (pd.DataFrame): The transaction data in a pandas DataFrame.
+
+    Returns:
+        str: The csv name in the format: account_first_date_to_last_date.csv
+    """
     # Convert date strings to datetime objects
     first_date = datetime.strptime(df['Date'].iloc[0], '%b %d, %Y')
     last_date = datetime.strptime(df['Date'].iloc[-1], '%b %d, %Y')
