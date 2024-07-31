@@ -16,6 +16,7 @@ import undetected_chromedriver as uc
 import pandas as pd
 from collections import defaultdict
 import re
+import gc
 
 load_dotenv()
 RBC_USERNAME = os.getenv("RBC_USERNAME")
@@ -158,6 +159,14 @@ def nav_to_trans_page(item):
 
 
 def get_ith_account(index):
+    """Get the ith account from the account list. Either banking or credit.
+
+    Args:
+        index (int): The index of the account in the list.
+
+    Returns:
+        Web element: Get the i-th element from the account list.
+    """
     try:
         # Find the account list within the bc-frame
         account_list = get_rbc_acounts(type = "banking")
@@ -169,6 +178,18 @@ def get_ith_account(index):
 
     
 def get_rbc_acounts(type = "banking"):
+    """Get the list of accounts from the RBC online banking page.
+    
+
+    Args:
+        type (str, optional): 
+        banking: get all the debit info
+        credit: get all the credit info. This is not implemented yet
+        . Defaults to "banking".
+
+    Returns:
+        webelement list: The list of accounts found on the page with the given type.
+    """
     try:
        
         table = WebDriverWait(driver, 10).until(
@@ -195,6 +216,12 @@ def get_rbc_acounts(type = "banking"):
 
 
 def dict_to_csv(data, account_name):
+    """Given a dictionary of data, save it to a CSV file with the given account name under the data dir.
+
+    Args:
+        data (dict): The Dictionary of data to save contain the account transcation.
+        account_name (str): The account name for saving csv file.
+    """
     df = pd.DataFrame(data)
     account_name = utils.replace_special_chars(account_name)
     df.to_csv(f"data/{account_name}.csv", index=False)
@@ -202,6 +229,15 @@ def dict_to_csv(data, account_name):
 
 
 def wait_for_summary_page_load(driver, timeout=30):
+    """This function waits for the summary page to reload so that the data can be processed next account.
+
+    Args:
+        driver (Web drive): _description_
+        timeout (int, optional): Max time out wait. Defaults to 30.
+
+    Returns:
+        bool: True if the summary page loaded successfully, False otherwise.
+    """
     try:
         WebDriverWait(driver, timeout).until(
             EC.presence_of_element_located((By.XPATH, "//section[contains(@class, 'account-summary-header')]"))
@@ -214,6 +250,11 @@ def wait_for_summary_page_load(driver, timeout=30):
 
 
 def process_accounts(account_list):
+    """Process each accounts in the account list.
+
+    Args:
+        account_list (list web element): The list of accounts to process.
+    """
     
     # The problem is I think I will nees ro re-run the login function to get the account_list again
     i = 0
@@ -244,6 +285,11 @@ def process_accounts(account_list):
 
 
 def nav_to_trans_table():
+    """This function navigates to the transaction table.
+
+    Returns:
+        Webelement: Find the where the transaction table is located.
+    """
 
     try:
        
@@ -272,6 +318,11 @@ def nav_to_trans_table():
 
 
 def trans_table_data():
+    """Process the transaction table and return the data in a dictionary.
+
+    Returns:
+        Dict: The dictionary of the transaction data.
+    """
     res = defaultdict(list)
     try:
        
@@ -321,13 +372,13 @@ def trans_table_data():
                         withdrawal = td.text                        
                     else:
                         withdrawal = ""
-                    res['Withdrawal'].append(withdrawal)
+                    res['Withdrawals'].append(withdrawal)
                 if i == 3:
                     if 'rbc-transaction-list-deposit' in td.get_attribute('class'):
                         deposit = td.text                       
                     else:
                         deposit = ""
-                    res['Deposit'].append(deposit)
+                    res['Deposits'].append(deposit)
                 if i == 4:
                     balance = td.text
                     res['Balance'].append(balance)
@@ -352,7 +403,6 @@ def main():
     else:
         driver = uc.Chrome(options=options)
     
-     # Create the driver with these options
 
     # Load the RBC login page
     login(rbc_login_url, RBC_USERNAME, RBC_PASSWORD)    
@@ -360,18 +410,16 @@ def main():
         handle_text_message_verification()
     except Exception as e:
          print("Verification step was skipped:", e)
+
     # Get the banking accounts
     banking_accounts = get_rbc_acounts()
     process_accounts(banking_accounts)
 
     #credit_accounts = get_rbc_acounts(type = "credit")
-    if not debugging:
-        driver.quit()
+    #process_accounts(credit_accounts)
 
+    
+    driver.quit()
+    gc.collect()
 if __name__ == "__main__":
     main()
-
-
-
-
-#<button _ngcontent-okq-c410="" type="button" id="30" data-role="transaction-list-section-filter-30" data-testid="30" aria-pressed="false" data-dig-id="OLB_PMSM_75" class="ng-star-inserted"><p _ngcontent-okq-c410="" class="rbc-sr-only">Display:</p> 30 days </button>

@@ -16,8 +16,8 @@ import undetected_chromedriver as uc
 import pandas as pd
 import re
 from datetime import datetime
+import gc
 
-debugging = True   
 # This script download the CIBC credit card history as csv file
 
 
@@ -326,8 +326,9 @@ def set_csv_name(account, df):
 
 def main():
     global driver
-    print("Setting up driver...")
 
+
+    print("Setting up driver...")   
     # driver options
     options = uc.ChromeOptions()
     options.add_argument("--no-sandbox")
@@ -335,6 +336,8 @@ def main():
 
     # Create the driver with these options
     driver = uc.Chrome(options=options, enable_cdp_events=True)
+    # else:
+    #     driver = uc.Chrome(options=options)
 
     # Login to CIBC online banking account.
     login(cibc_login_url, CIBC_USERNAME, CIBC_PASSWORD)
@@ -345,7 +348,10 @@ def main():
         print(f"Account: {account}")
         csv_name = set_csv_name(account,df)
         df.to_csv(f'data/{csv_name}', index=False)
+
+    
     driver.quit()
+    gc.collect()
 
 if __name__ == "__main__":
     main()
