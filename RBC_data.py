@@ -18,6 +18,8 @@ from collections import defaultdict
 import re
 import gc
 
+## TOdo: Re run the pipline on monthly basis to get the data for the months
+
 load_dotenv()
 RBC_USERNAME = os.getenv("RBC_USERNAME")
 RBC_PASSWORD = os.getenv("RBC_PASSWORD")

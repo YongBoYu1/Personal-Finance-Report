@@ -23,6 +23,24 @@ TD_USERNAME = os.getenv("TD_USERNAME")
 TD_PASSWORD = os.getenv("TD_PASSWORD")
 td_utl = 'https://authentication.td.com/uap-ui/?consumer=easyweb&locale=en_CA#/uap/login'
 
+def accept_cookies():
+    """Accept the cookies on the TD Online Bank website.
+    """
+    try:
+        # Wait for the cookies banner to be present in the DOM
+        cookies_banner = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "onetrust-banner-sdk"))
+        )
+
+        # Click the Accept All Cookies button
+        accept_all_button = WebDriverWait(cookies_banner, 10).until(
+            EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
+        )
+        accept_all_button.click()
+    except TimeoutException:
+        print("Timed out waiting for the cookies banner.")
+
+
 def click_120_days():
     """
     Click the 120 days link and wait for the option to become bold (selected).
@@ -232,9 +250,10 @@ def process_accounts(account_list):
         WebDriverWait(driver, 10).until(EC.frame_to_be_available_and_switch_to_it((By.NAME, 'tddetails')))
         print('Switched to the frame containing the account details.')
 
-
-        click_120_days()
-        print('Selected the  120 days option.')
+        # The following code is optional. It selects the 120 days option.
+        # We commented it out because I am tring 30 days option, which is the default.
+        #click_120_days()
+        #print('Selected the  120 days option.')
 
 
         trans_data=get_trans_data()

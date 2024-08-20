@@ -5,7 +5,7 @@ import os
 import random
 import time
 import re
-
+import pandas as pd
 
 
 
@@ -31,16 +31,16 @@ def human_like_delay():
 def get_drive_options(debugging):   
     # Set up Chrome options to keep the browser window open
     chrome_options = Options()
+    chrome_options.add_argument("--verbose")
+    chrome_options.add_argument("--log-level=3")
+    chrome_options.add_argument("start-maximized")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--remote-debugging-port=9222")
 
     if debugging:
-        chrome_options.add_experimental_option("detach", True)
-        chrome_options.add_argument("--verbose")
-        chrome_options.add_argument("--log-level=3")
-        chrome_options.add_argument("start-maximized")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--remote-debugging-port=9222")
+        chrome_options.add_experimental_option("detach", True)       
     else:
         chrome_options.add_argument("--headless")
     #driver = webdriver.Chrome(options=chrome_options)
@@ -52,3 +52,28 @@ def smooth_scroll(driver, scroll_to=1000, step=100):
         driver.execute_script(f"window.scrollTo(0, {current_scroll});")
         current_scroll += step
         time.sleep(0.1)  # Add a small delay to make it smoother
+
+
+def summarize_nas(df):
+    """
+    Summarizes the missing values in a DataFrame.
+    
+    Parameters:
+    df (pd.DataFrame): The DataFrame to summarize.
+
+    Returns:
+    pd.DataFrame: A summary DataFrame containing the count and percentage of missing values for each column.
+    """
+    # Calculate the number of missing values per column
+    nas = df.isna().sum()
+    
+    # Calculate the percentage of missing values per column
+    nas_percent = (nas / len(df)) * 100
+    
+    # Create a summary DataFrame
+    summary_df = pd.DataFrame({
+        'Missing Values': nas,
+        'Percentage': nas_percent
+    }).sort_values(by='Missing Values', ascending=False)
+    
+    return summary_df
