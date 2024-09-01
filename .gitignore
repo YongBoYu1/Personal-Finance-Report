@@ -1,6 +1,7 @@
 .env
 chromedriver-win32/
 data/
+archive/
 **/.ipynb_checkpoints
 **/__pycache__/
 **/*.pyc
