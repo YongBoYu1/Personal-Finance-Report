@@ -5,8 +5,9 @@ import os
 import random
 import time
 import re
+from datetime import datetime
 import pandas as pd
-
+from decimal import Decimal, InvalidOperation
 
 
 def replace_special_chars(input_string):
@@ -77,3 +78,63 @@ def summarize_nas(df):
     }).sort_values(by='Missing Values', ascending=False)
     
     return summary_df
+
+
+def df_to_csv(df, csv_name,type):
+    """This function saves the transaction data to a csv file.
+
+    Args:
+        df (pd.DataFrame): The transaction data in a pandas DataFrame.
+        csv_name (str): The name of the csv file.
+        type (str): The type of account. Either 'credit' or 'banking'.
+    """
+    if type == 'credit':
+        file_path = f'data/credit/{csv_name}'
+        
+    else:
+        file_path = f'data/banking/{csv_name}'
+    
+    df.to_csv(file_path, index=False)
+    print(f"{csv_name} saved at {file_path}! \n")
+    
+
+
+def set_csv_name(account, df, insitution):
+    """This function sets the name of the csv file to save the transaction data to.
+
+    Args:
+        account (str): The account name.
+        df (pd.DataFrame): The transaction data in a pandas DataFrame.
+
+    Returns:
+        str: The csv name in the format: account_first_date_to_last_date.csv
+    """
+    # Convert date strings to datetime objects
+    if insitution =='cibc':
+        first_date = datetime.strptime(df['Date'].iloc[0], '%b %d, %Y')
+
+        last_date = datetime.strptime(df['Date'].iloc[-1], '%b %d, %Y')
+    if insitution =='rbc':
+        first_date = datetime.strptime(df['Date'].iloc[0], '%b %d, %Y')
+        last_date = datetime.strptime(df['Date'].iloc[-1], '%b %d, %Y')
+    if insitution =='td':
+        print('td time format') 
+        print(df['Date'].iloc[0])
+        first_date = datetime.strptime(df['Date'].iloc[0], '%b %d, %Y')
+        last_date = datetime.strptime(df['Date'].iloc[-1], '%b %d, %Y')
+    # Format dates in a file-friendly format (YYYYMMDD)
+    first_date_str = first_date.strftime('%Y%m%d')
+    last_date_str = last_date.strftime('%Y%m%d')
+    
+    # Remove any invalid filename characters from the account name
+    #safe_account_name = ''.join(c for c in account if c.isalnum() or c in ('-', '_'))
+    account_name = account.replace(" ", "_")
+    return f"{account_name}_{first_date_str}_to_{last_date_str}.csv"
+
+
+
+def clean_numeric(value):
+    try:
+        return str(Decimal(value.replace(',', '').replace('$', '').strip()))
+    except InvalidOperation:
+        return "0.00"
